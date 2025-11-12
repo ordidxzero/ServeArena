@@ -40,7 +40,8 @@ class ServeArenaLogger:
         return uid
     
     def info(self, uid: UUID, line: str):
-        self._file[uid].write(line + '\n')
+        if line != "":
+            self._file[uid].write(line + '\n')
 
     def close(self, uid: UUID):
         assert self._file[uid] is not None, "File did not open."

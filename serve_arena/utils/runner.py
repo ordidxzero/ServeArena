@@ -64,22 +64,17 @@ class BenchmarkRunner:
 
         self._is_ready = True
 
-    def run_server(self, host:str  = "localhost", port: int = 8000, **kwargs: str | int | float):
+    def run_server(self, host:str  = "localhost", port: int = 8000):
         assert self._is_benchmark_only == False, "Server does not required."
         assert BenchmarkRunner.is_port_open(host, port) == False, f"Post {port} is already used."
 
         if self._server_process is not None:
             assert self._server_process.poll() == 0, "Server does not closed successfully."
             self._server_process = None
-
-        if self.logger is not None:
-            self.logger.format(kwargs)
         
-        self._cmd['server'].format(**kwargs)
-        
-        # Print Server Command Information
-        # Here..
-        # =================================
+        print("=" * 30)
+        print(f"Server Command: {self._cmd['server'].as_string()}")
+        print("=" * 30)
 
         self._server_process = subprocess.Popen(
             args=shlex.split(self._cmd['server'].as_string()),
@@ -115,21 +110,23 @@ class BenchmarkRunner:
             
             if self.logger is not None and self._server_logger_uid is not None:
                 self.logger.close(self._server_logger_uid)
-            print("Terminated...")
+            print("Terminated Server...")
             torch.cuda.empty_cache()
             gc.collect()
 
         self._terminate_server = terminate
 
-    def run_benchmark(self, **kwargs: str | int | float):
+    def run_benchmark(self):
         if not self._is_benchmark_only and not self._is_server_ready:
             raise Exception("Server is not ready.")
         
         if self._benchmark_process is not None:
             assert self._benchmark_process.poll() == 0, "Benchmark code does not closed successfully."
             self._benchmark_process = None
-        
-        self._cmd['benchmark'].format(**kwargs)
+
+        print("=" * 30)
+        print(f"Benchmark Command: {self._cmd['benchmark'].as_string()}")
+        print("=" * 30)
 
         self._benchmark_process = subprocess.Popen(
             args=shlex.split(self._cmd['benchmark'].as_string()),
@@ -151,11 +148,15 @@ class BenchmarkRunner:
         def terminate():
             self._benchmark_process.terminate() # type: ignore
             self._benchmark_process.wait(timeout=60) # type: ignore
-            print("Terminated...")
+            print("Terminate Benchmarking...")
             torch.cuda.empty_cache()
             gc.collect()
 
         terminate()
+
+    @staticmethod
+    def clear_terminal():
+        os.system("clear")
     
     @staticmethod
     def is_port_open(host:str  = "localhost", port: int = 8000) -> bool:

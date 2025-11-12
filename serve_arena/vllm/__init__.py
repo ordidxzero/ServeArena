@@ -23,13 +23,13 @@ class VLLMRunner(BenchmarkRunner):
     
     def run(self, **kwargs: str | int | float):
         self.init(**kwargs)
-        self.run_server('localhost', 8000, **kwargs)
+        self.run_server('localhost', 8000)
 
         assert self._terminate_server is not None, "Server is not initialized"
 
         while True:
             if BenchmarkRunner.is_port_open('localhost', 8000):
-                self.run_benchmark(**kwargs)
+                self.run_benchmark()
                 break
 
             time.sleep(1)
