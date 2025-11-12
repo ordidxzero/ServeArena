@@ -1,4 +1,5 @@
 import torch
+from uuid import uuid4, UUID
 from pathlib import Path
 from typing import Dict, Optional, Callable
 from serve_arena.utils.command import CommandArgs
@@ -9,35 +10,41 @@ class ServeArenaLogger:
     prefix: str
     device_prefix: str
     filename: Optional[str]
-    mapping: Callable[[str, str, CommandArgs], str]
-    _file: TextIOWrapper
+    mapping: Optional[Callable[[str, str, CommandArgs], str]]
+    _file: Dict[UUID, TextIOWrapper]
     
-    def __init__(self, dir: Path, prefix: str, mapping: Callable[[str, str, CommandArgs], str]):
+    def __init__(self, dir: Path, prefix: Optional[str] = None, mapping: Optional[Callable[[str, str, CommandArgs], str]] = None):
+        self._file = {}
         self.dir = dir
-        self.prefix = prefix
+        self.prefix = '' if prefix is None else prefix
         self.filename = None
         self.device_prefix = self.get_device_prefix()
         self.mapping = mapping
 
     def format(self, args: CommandArgs):
-        self.filename = self.mapping(self.device_prefix, self.prefix, args)
+        if self.mapping is not None:
+            self.filename = self.mapping(self.device_prefix, self.prefix, args)
+        else:
+            self.filename = f'{self.device_prefix}_{self.prefix}_output.log'
 
         if not self.filename.endswith(".log"):
             self.filename += '.log'
 
-    def open(self, server: bool = False):
+    def open(self, server: bool = False) -> UUID:
+        uid = uuid4()
         if server == True:
-            self._file = open(self.get_server_log_path(absolute=True).as_posix(), "w")
+            self._file[uid] = open(self.get_server_log_path(absolute=True).as_posix(), "w")
         else:
-            self._file = open(self.get_benchmark_log_path(absolute=True).as_posix(), "w")
+            self._file[uid] = open(self.get_benchmark_log_path(absolute=True).as_posix(), "w")
+        
+        return uid
     
-    def info(self, line: str):
-        self._file.write(line + '\n')
+    def info(self, uid: UUID, line: str):
+        self._file[uid].write(line + '\n')
 
-    def close(self):
-        assert self._file is not None, "File did not open."
-        self._file.close()
-    
+    def close(self, uid: UUID):
+        assert self._file[uid] is not None, "File did not open."
+        self._file[uid].close()
 
     def get_server_log_path(self, absolute: bool = False) -> Path:
         assert self.filename is not None, "Filename is None."
