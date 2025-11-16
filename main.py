@@ -14,7 +14,7 @@ def get_log_filename(device_prefix: str, prefix: str, args: CommandArgs):
 
 logger = ServeArenaLogger(Path('./outputs'), "v3_exp1", mapping=get_log_filename)
 
-runner = VLLMRunner(benchmark_cmd=benchmark_cmd, server_cmd=server_cmd, envs={"VLLM_USE_V1": "0", "CUDA_VISIBLE_DEVICES": "0", 'VLLM_LOG_STATS_INTERVAL': '10'}, logger=logger)
+runner = VLLMRunner(benchmark_cmd=benchmark_cmd, server_cmd=server_cmd, envs={"VLLM_USE_V1": "1", "CUDA_VISIBLE_DEVICES": "0", 'VLLM_LOG_STATS_INTERVAL': '10'}, logger=logger)
 
 CONFIGURATIONS = [(128, 128), (2048, 128), (128, 2048), (2048, 2048)]
 
