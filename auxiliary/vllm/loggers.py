@@ -133,7 +133,8 @@ class LoggingStatLogger(StatLoggerBase):
             "Avg prompt throughput: %.1f tokens/s, "
             "Avg generation throughput: %.1f tokens/s, "
             "Running: %d reqs, Waiting: %d reqs, "
-            "Generation: %d tokens, "
+            "Prompt: %d reqs, Prompt Len: %d tokens, "
+            "Generation: %d reqs, "
             "GPU KV cache usage: %.1f%%, "
             "Prefix cache hit rate: %.1f%%",
             self.engine_index,
@@ -141,7 +142,9 @@ class LoggingStatLogger(StatLoggerBase):
             generation_throughput,
             scheduler_stats.num_running_reqs,
             scheduler_stats.num_waiting_reqs,
-            self.iteration_stats.num_generation_tokens,
+            self.iteration_stats.num_prompt_requests_iter,
+            self.iteration_stats.num_prompt_tokens,
+            self.iteration_stats.num_generation_requests_iter,
             scheduler_stats.kv_cache_usage * 100,
             self.prefix_caching_metrics.hit_rate * 100,
         )

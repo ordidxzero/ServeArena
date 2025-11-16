@@ -1,0 +1,29 @@
+FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+
+WORKDIR /app
+
+
+SHELL ["/bin/bash", "-c"]
+ENV HF_HOME=/huggingface
+
+RUN apt update && apt install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt install -y python3.10 python3-pip python3-packaging
+RUN apt update && apt install -y libnuma-dev libssl-dev wget
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.9/cmake-3.31.9.tar.gz
+RUN tar -zxvf cmake-3.31.9.tar.gz
+RUN cd cmake-3.31.9 && ./bootstrap && make && make install
+RUN cd ../ && rm -rf cmake-3.31.9 cmake-3.31.9.tar.gz
+
+RUN wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.14.1/tars/TensorRT-10.14.1.48.Linux.x86_64-gnu.cuda-12.9.tar.gz
+RUN mkdir /usr/local/tensorrt
+RUN tar -zxvf TensorRT-10.14.1.48.Linux.x86_64-gnu.cuda-12.9.tar.gz -C /usr/local/tensorrt
+RUN rm -f TensorRT-10.14.1.48.Linux.x86_64-gnu.cuda-12.9.tar.gz
+RUN echo 'export TensorRT_DIR="/usr/local/tensorrt"' >> /root/.bashrc && echo 'export PATH=$TensorRT_DIR/bin:$PATH' >> /root/.bashrc && echo 'export LD_LIBRARY_PATH=$TENSORRT_DIR/lib:$LD_LIBRARY_PATH' >> /root/.bashrc
+RUN source /root/.bashrc
+
+# COPY ./_TensorRT-LLM /trtllm
+# RUN python3 -m pip install --upgrade pip
+# RUN python3 -m pip install wheel setuptools
+# RUN python3 /trtllm/scripts/build_wheel.py --benchmarks
+# RUN pip3 install /trtllm/build/tensorrt_llm*.whl
+# RUN rm -rf /trtllm
